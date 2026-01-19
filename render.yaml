@@ -16,7 +16,5 @@ services:
         value: 300000
       - key: OUTPUT_DIR
         value: /tmp/crawler-output
-      - key: ALLOWED_ORIGINS
-        sync: false
     healthCheckPath: /health
     autoDeploy: true

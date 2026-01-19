@@ -63,10 +63,10 @@ git push -u origin main
 - **Name**: `site-content-crawler`（或自訂名稱）
 - **Region**: Oregon (US West)
 - **Branch**: `main`
-- **Root Directory**: (留空)
+- **Root Directory**: `.` (設為當前目錄)
 - **Environment**: `Node`
 - **Build Command**: `npm install && npx playwright install --with-deps chromium && npm run build`
-- **Start Command**: `npm run server:prod`
+- **Start Command**: `node dist/server.js`
 - **Plan**: `Free`
 
 #### 3.3 設置環境變量
