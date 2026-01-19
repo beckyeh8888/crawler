@@ -71,7 +71,7 @@ npm run server
 2. 開啟瀏覽器訪問：
 
 ```
-http://localhost:3001
+http://localhost:3005
 ```
 
 3. 在網頁介面中：
