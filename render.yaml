@@ -4,8 +4,9 @@ services:
     env: node
     region: oregon
     plan: free
+    rootDir: .
     buildCommand: npm install && npx playwright install --with-deps chromium && npm run build
-    startCommand: npm run server:prod
+    startCommand: node dist/server.js
     envVars:
       - key: NODE_ENV
         value: production
