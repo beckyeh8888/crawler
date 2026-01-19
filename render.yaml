@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: site-content-crawler
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npx playwright install --with-deps chromium && npm run build
+    startCommand: npm run server:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: FILE_EXPIRY_MS
+        value: 300000
+      - key: OUTPUT_DIR
+        value: /tmp/crawler-output
+      - key: ALLOWED_ORIGINS
+        sync: false
+    healthCheckPath: /health
+    autoDeploy: true

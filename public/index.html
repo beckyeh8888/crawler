@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Site Content Crawler</title>
+  <script src="config.js"></script>
   <style>
     * {
       margin: 0;
@@ -492,7 +493,8 @@
   </div>
 
   <script>
-    const API_URL = 'http://localhost:3005/api';
+    const API_URL = window.CRAWLER_CONFIG.getApiUrl();
+    console.log('🔗 API URL:', API_URL);
     let currentJobId = null;
     let pollInterval = null;
 
@@ -754,12 +756,13 @@
         const response = await fetch(`${API_URL}/jobs`);
         if (response.ok) {
           console.log('✅ Server connection successful');
+          showStatus(`✅ 已連接到服務器: ${API_URL}`, 'success');
         } else {
           showStatus('⚠️ 伺服器回應異常，請檢查伺服器狀態', 'error');
         }
       } catch (error) {
         console.error('Connection test failed:', error);
-        showStatus('❌ 無法連接到伺服器 (http://localhost:3005)，請先啟動伺服器', 'error');
+        showStatus(`❌ 無法連接到伺服器 (${API_URL})，後端可能正在冷啟動 (約 50 秒)，請稍候...`, 'error');
       }
     }
 

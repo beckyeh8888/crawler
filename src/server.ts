@@ -5,11 +5,38 @@ import { Crawler } from './crawler';
 import { Bundler } from './bundler';
 import * as fs from 'fs/promises';
 import { extractDomain, domainToPrefix } from './utils/domain';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3005;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const FILE_EXPIRY_MS_CONFIG = parseInt(process.env.FILE_EXPIRY_MS || '300000', 10);
+const OUTPUT_BASE_DIR = process.env.OUTPUT_DIR || path.join(__dirname, '../output');
 
-app.use(cors());
+// CORS Configuration
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim())
+  : ['http://localhost:3005'];
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1 || NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
@@ -42,8 +69,8 @@ interface CrawlJob {
 
 const jobs = new Map<string, CrawlJob>();
 
-// File expiry time: 5 minutes
-const FILE_EXPIRY_MS = 5 * 60 * 1000;
+// File expiry time: from environment or default 5 minutes
+const FILE_EXPIRY_MS = FILE_EXPIRY_MS_CONFIG;
 
 // Start crawl
 app.post('/api/crawl', async (req, res) => {
@@ -64,7 +91,7 @@ app.post('/api/crawl', async (req, res) => {
     }
 
     const jobId = Date.now().toString();
-    const outputDir = path.join(__dirname, '../output', jobId);
+    const outputDir = path.join(OUTPUT_BASE_DIR, jobId);
 
     // Extract domain information
     const domain = extractDomain(startUrl);
@@ -188,7 +215,7 @@ app.get('/api/download/:jobId/:filename', async (req, res) => {
       });
     }
 
-    const filepath = path.join(__dirname, '../output', jobId, filename);
+    const filepath = path.join(OUTPUT_BASE_DIR, jobId, filename);
 
     const exists = await fs.access(filepath).then(() => true).catch(() => false);
     if (!exists) {
@@ -205,7 +232,7 @@ app.get('/api/download/:jobId/:filename', async (req, res) => {
 app.get('/api/files/:jobId', async (req, res) => {
   try {
     const { jobId } = req.params;
-    const outputDir = path.join(__dirname, '../output', jobId);
+    const outputDir = path.join(OUTPUT_BASE_DIR, jobId);
 
     const files = await fs.readdir(outputDir);
     const fileList = [];
@@ -226,6 +253,43 @@ app.get('/api/files/:jobId', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: NODE_ENV,
+    uptime: process.uptime()
+  });
+});
+
+// API info endpoint
+app.get('/api', (req, res) => {
+  res.json({
+    name: 'Site Content Crawler API',
+    version: '1.0.0',
+    endpoints: {
+      crawl: 'POST /api/crawl',
+      jobs: 'GET /api/jobs',
+      job: 'GET /api/jobs/:jobId',
+      download: 'GET /api/download/:jobId/:filename',
+      files: 'GET /api/files/:jobId'
+    }
+  });
+});
+
+// Ensure output directory exists
+async function ensureOutputDir() {
+  try {
+    await fs.mkdir(OUTPUT_BASE_DIR, { recursive: true });
+    console.log(`✅ Output directory ready: ${OUTPUT_BASE_DIR}`);
+  } catch (error) {
+    console.error('❌ Failed to create output directory:', error);
+  }
+}
+
+ensureOutputDir();
 
 // Automatic cleanup of expired files (runs every 60 seconds)
 setInterval(async () => {
@@ -254,4 +318,8 @@ setInterval(async () => {
 
 app.listen(PORT, () => {
   console.log(`🚀 Crawler server running on http://localhost:${PORT}`);
+  console.log(`📁 Output directory: ${OUTPUT_BASE_DIR}`);
+  console.log(`⏱️  File expiry: ${FILE_EXPIRY_MS / 1000}s`);
+  console.log(`🌍 Environment: ${NODE_ENV}`);
+  console.log(`🔐 Allowed origins: ${allowedOrigins.join(', ')}`);
 });

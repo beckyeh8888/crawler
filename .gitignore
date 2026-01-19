@@ -4,3 +4,9 @@ out/
 *.log
 .DS_Store
 .env
+
+# Output and deployment
+output/
+.env.local
+.env.production
+*.tsbuildinfo
