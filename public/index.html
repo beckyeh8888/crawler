@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site Content Crawler</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .status {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      background: #f5f5f5;
+      display: none;
+    }
+
+    .status.show {
+      display: block;
+    }
+
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .status.running {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    .jobs-list {
+      margin-top: 20px;
+    }
+
+    .job-item {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border-left: 4px solid #667eea;
+    }
+
+    .job-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .job-id {
+      font-weight: 600;
+      color: #667eea;
+    }
+
+    .job-status {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .job-status.running {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+
+    .job-status.completed {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .job-status.failed {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .job-status.expired {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .job-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .job-meta {
+      display: flex;
+      gap: 15px;
+      font-size: 13px;
+      color: #666;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .job-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .expiry-timer {
+      margin-top: 8px;
+      padding: 8px;
+      background: #fff3cd;
+      border-left: 3px solid #ffc107;
+      font-size: 13px;
+      color: #856404;
+      border-radius: 4px;
+    }
+
+    .job-item.expired {
+      opacity: 0.6;
+      border-left: 3px solid #dc3545;
+    }
+
+    .error-message {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+
+    .files-list {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .file-link {
+      padding: 6px 12px;
+      background: #667eea;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+
+    .file-link:hover {
+      background: #5568d3;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      transition: width 0.3s;
+    }
+
+    .help-text {
+      font-size: 13px;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: flex-start;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .radio-label:hover {
+      border-color: #667eea;
+      background-color: #f9f9f9;
+    }
+
+    .radio-label input[type="radio"] {
+      margin-right: 12px;
+      margin-top: 4px;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .radio-label input[type="radio"]:checked {
+      accent-color: #667eea;
+    }
+
+    .radio-content {
+      flex: 1;
+    }
+
+    .radio-content strong {
+      display: block;
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    .radio-label input[type="radio"]:checked ~ .radio-content strong {
+      color: #667eea;
+    }
+
+    .radio-content .hint {
+      display: block;
+      font-size: 0.9em;
+      color: #666;
+      font-weight: normal;
+    }
+
+    .info-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      background-color: #e8f5e9;
+      border-left: 4px solid #4CAF50;
+      border-radius: 4px;
+    }
+
+    .info-box .emoji {
+      font-size: 1.5em;
+    }
+
+    small {
+      display: block;
+      font-size: 0.85em;
+      color: #666;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🕷️ Site Content Crawler</h1>
+      <p>智能站內連結爬蟲，輸出乾淨 Markdown</p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom: 20px;">開始爬取</h2>
+      <form id="crawlForm">
+        <div class="form-group">
+          <label for="startUrl">起始 URL *</label>
+          <input
+            type="text"
+            id="startUrl"
+            name="startUrl"
+            placeholder="https://example.com/docs/"
+            required
+          >
+          <div class="help-text">從這個 URL 開始爬取整個網站</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="maxPages">最大頁數</label>
+            <input
+              type="number"
+              id="maxPages"
+              name="maxPages"
+              value="2000"
+              min="1"
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>爬取模式</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="mode" value="auto" checked>
+              <div class="radio-content">
+                <strong>自動優化（推薦）</strong>
+                <span class="hint">系統自動選擇最佳設定，適合大多數網站</span>
+              </div>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="mode" value="manual">
+              <div class="radio-content">
+                <strong>手動設定</strong>
+                <span class="hint">自訂並發數和延遲，適合進階用戶</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div id="manualSettings" style="display: none;">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="concurrency">並發數</label>
+              <input
+                type="number"
+                id="concurrency"
+                name="concurrency"
+                value="5"
+                min="1"
+                max="10"
+              >
+              <small>同時爬取的頁面數量</small>
+            </div>
+
+            <div class="form-group">
+              <label for="delay">延遲 (ms)</label>
+              <input
+                type="number"
+                id="delay"
+                name="delay"
+                value="150"
+                min="0"
+                max="5000"
+              >
+              <small>每次請求之間的等待時間</small>
+            </div>
+          </div>
+        </div>
+
+        <div id="autoStatus" style="display: none; margin-bottom: 20px;">
+          <div class="info-box">
+            <span class="emoji">🤖</span>
+            <span id="autoStatusText">正在分析網站特性...</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="renderMode">渲染模式</label>
+            <select id="renderMode" name="renderMode">
+              <option value="never">Never - 僅靜態 HTML</option>
+              <option value="auto" selected>Auto - 自動偵測</option>
+              <option value="always">Always - 總是渲染</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="checkbox-group">
+          <input type="checkbox" id="samePath" name="samePath" checked>
+          <label for="samePath" style="margin: 0;">只爬取同路徑前綴</label>
+        </div>
+
+        <div class="checkbox-group">
+          <input type="checkbox" id="ignoreRobots" name="ignoreRobots">
+          <label for="ignoreRobots" style="margin: 0;">忽略 robots.txt</label>
+        </div>
+
+        <button type="submit" class="btn" id="submitBtn">
+          開始爬取
+        </button>
+      </form>
+
+      <div id="status" class="status"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom: 20px;">爬取任務</h2>
+      <div id="jobsList" class="jobs-list">
+        <p style="color: #999; text-align: center;">尚無任務</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:3005/api';
+    let currentJobId = null;
+    let pollInterval = null;
+
+    // Mode switcher
+    document.querySelectorAll('input[name="mode"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const manualSettings = document.getElementById('manualSettings');
+        const autoStatus = document.getElementById('autoStatus');
+
+        if (e.target.value === 'manual') {
+          manualSettings.style.display = 'block';
+          autoStatus.style.display = 'none';
+        } else {
+          manualSettings.style.display = 'none';
+          autoStatus.style.display = 'none';
+        }
+      });
+    });
+
+    // Form submit
+    document.getElementById('crawlForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const mode = document.querySelector('input[name="mode"]:checked').value;
+
+      const data = {
+        startUrl: formData.get('startUrl'),
+        maxPages: parseInt(formData.get('maxPages')),
+        renderMode: formData.get('renderMode'),
+        samePath: document.getElementById('samePath').checked,
+        ignoreRobots: document.getElementById('ignoreRobots').checked,
+        mode: mode,
+      };
+
+      // Only include concurrency and delay in manual mode
+      if (mode === 'manual') {
+        data.concurrency = parseInt(formData.get('concurrency'));
+        data.delay = parseInt(formData.get('delay'));
+      }
+
+      // Show auto optimization status if in auto mode
+      if (mode === 'auto') {
+        const autoStatus = document.getElementById('autoStatus');
+        const autoStatusText = document.getElementById('autoStatusText');
+        autoStatus.style.display = 'block';
+        autoStatusText.textContent = '正在分析網站特性...';
+      }
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '爬取中...';
+
+      try {
+        const response = await fetch(`${API_URL}/crawl`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          currentJobId = result.jobId;
+          showStatus('爬取已開始！任務 ID: ' + result.jobId, 'running');
+          startPolling();
+        } else {
+          showStatus('錯誤: ' + result.error, 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = '開始爬取';
+        }
+      } catch (error) {
+        console.error('Fetch error:', error);
+        showStatus('無法連接到伺服器，請確認伺服器正在運行 (http://localhost:3005)', 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = '開始爬取';
+      }
+    });
+
+    // Show status
+    function showStatus(message, type) {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = `status show ${type}`;
+    }
+
+    // Start polling for job status
+    function startPolling() {
+      if (pollInterval) clearInterval(pollInterval);
+
+      pollInterval = setInterval(async () => {
+        await loadJobs();
+
+        if (currentJobId) {
+          const job = await getJob(currentJobId);
+          if (job && job.status !== 'running') {
+            clearInterval(pollInterval);
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = false;
+            submitBtn.textContent = '開始爬取';
+
+            if (job.status === 'completed') {
+              showStatus('爬取完成！', 'success');
+            } else {
+              showStatus('爬取失敗: ' + job.error, 'error');
+            }
+            currentJobId = null;
+          }
+        }
+      }, 3000);
+    }
+
+    // Get job
+    async function getJob(jobId) {
+      try {
+        const response = await fetch(`${API_URL}/jobs/${jobId}`);
+        if (response.ok) {
+          const job = await response.json();
+
+          // Display optimization results if available
+          if (job.results && job.results.optimizationSettings) {
+            const autoStatusText = document.getElementById('autoStatusText');
+            const settings = job.results.optimizationSettings;
+            autoStatusText.innerHTML = `
+              <strong>已完成優化</strong><br>
+              並發數: ${settings.concurrency} | 延遲: ${settings.delay}ms<br>
+              <em>${settings.reasoning}</em>
+            `;
+          }
+
+          return job;
+        }
+      } catch (error) {
+        console.error('Error fetching job:', error);
+      }
+      return null;
+    }
+
+    // Load all jobs
+    async function loadJobs() {
+      try {
+        const response = await fetch(`${API_URL}/jobs`);
+        const jobs = await response.json();
+
+        const jobsList = document.getElementById('jobsList');
+
+        if (jobs.length === 0) {
+          jobsList.innerHTML = '<p style="color: #999; text-align: center;">尚無任務</p>';
+          return;
+        }
+
+        jobsList.innerHTML = jobs.map(job => `
+          <div class="job-item ${job.status}">
+            <div class="job-header">
+              <div class="job-title">
+                <strong>爬取 ${job.domain || job.startUrl}</strong>
+              </div>
+              <div class="job-status ${job.status}">${getStatusText(job.status)}</div>
+            </div>
+            <div class="job-meta">
+              <span>🔗 ${job.startUrl}</span>
+              <span>⏰ ${formatTime(job.startTime)}</span>
+              ${job.completedTime ? `<span>✓ ${formatTime(job.completedTime)}</span>` : ''}
+            </div>
+            ${job.status === 'running' ? `
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: ${(job.progress.current / job.progress.total * 100).toFixed(0)}%"></div>
+              </div>
+              <div style="font-size: 13px; color: #666; margin-top: 5px;">
+                進度: ${job.progress.current} / ${job.progress.total} (佇列: ${job.progress.queue})
+              </div>
+            ` : ''}
+            ${job.status === 'completed' ? `
+              ${job.expiryTime ? `
+                <div class="expiry-timer" id="timer-${job.id}" data-expiry="${job.expiryTime}">
+                  ⏱️ 文件將於 <span class="time-remaining">${formatTimeRemaining(job.expiryTime)}</span> 後過期
+                </div>
+              ` : ''}
+              <div class="files-list" id="files-${job.id}">
+                <a href="${API_URL}/download/${job.id}/${job.domainPrefix}_index.csv" class="file-link" download>📄 ${job.domainPrefix}_index.csv</a>
+                <a href="${API_URL}/download/${job.id}/${job.domainPrefix}_merged.md" class="file-link" download>📚 ${job.domainPrefix}_merged.md</a>
+                <a href="${API_URL}/download/${job.id}/${job.domainPrefix}_manifest.csv" class="file-link" download>📋 ${job.domainPrefix}_manifest.csv</a>
+              </div>
+            ` : ''}
+            ${job.status === 'expired' ? `
+              <div class="error-message" style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-top: 10px;">
+                文件已超過 5 分鐘過期時間，請重新掃描
+              </div>
+              <button onclick="reCrawl('${job.startUrl}')" style="margin-top: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                重新掃描
+              </button>
+            ` : ''}
+            ${job.status === 'failed' ? `
+              <div style="color: #721c24; font-size: 13px; margin-top: 5px;">
+                錯誤: ${job.error}
+              </div>
+            ` : ''}
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Error loading jobs:', error);
+      }
+    }
+
+    function getStatusText(status) {
+      const map = {
+        running: '🔄 執行中',
+        completed: '✅ 完成',
+        failed: '❌ 失敗',
+        expired: '⏱️ 已過期',
+      };
+      return map[status] || status;
+    }
+
+    function formatTime(dateString) {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      return date.toLocaleString('zh-TW', {
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    }
+
+    function formatTimeRemaining(expiryTime) {
+      if (!expiryTime) return '';
+      const remaining = Math.max(0, new Date(expiryTime) - Date.now());
+      const minutes = Math.floor(remaining / 60000);
+      const seconds = Math.floor((remaining % 60000) / 1000);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    // Update expiry timers
+    function updateExpiryTimers() {
+      const timers = document.querySelectorAll('.expiry-timer');
+      timers.forEach(timer => {
+        const expiryTime = timer.dataset.expiry;
+        if (expiryTime) {
+          const timeSpan = timer.querySelector('.time-remaining');
+          if (timeSpan) {
+            timeSpan.textContent = formatTimeRemaining(expiryTime);
+          }
+        }
+      });
+    }
+
+    // Re-crawl function
+    function reCrawl(url) {
+      document.getElementById('startUrl').value = url;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showStatus('請點擊「開始爬取」重新掃描', 'info');
+    }
+
+    // Test server connection on load
+    async function testConnection() {
+      try {
+        const response = await fetch(`${API_URL}/jobs`);
+        if (response.ok) {
+          console.log('✅ Server connection successful');
+        } else {
+          showStatus('⚠️ 伺服器回應異常，請檢查伺服器狀態', 'error');
+        }
+      } catch (error) {
+        console.error('Connection test failed:', error);
+        showStatus('❌ 無法連接到伺服器 (http://localhost:3005)，請先啟動伺服器', 'error');
+      }
+    }
+
+    // Load jobs on page load
+    testConnection();
+    loadJobs();
+    setInterval(loadJobs, 5000);
+    setInterval(updateExpiryTimers, 1000); // Update timers every second
+  </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+﻿url,title,status,wordCount,method,outFile
+https://www.skytek.com.tw/,"天方科技 Skytek",success,73,playwright,index.md
+https://www.skytek.com.tw/news,"天方科技實業股份有限公司",success,14,playwright,news.md
+https://www.skytek.com.tw/contactus,"天方科技實業股份有限公司",success,11,playwright,contactus.md
+https://www.skytek.com.tw/project/universities,"天方科技實業股份有限公司",success,66,playwright,project_universities.md
+https://www.skytek.com.tw/about,"天方科技實業股份有限公司",success,5,playwright,about.md
+https://www.skytek.com.tw/device/EPSON,"天方科技實業股份有限公司",success,2,playwright,device_EPSON.md
+https://www.skytek.com.tw/device/Panasonic,"天方科技實業股份有限公司",success,3,playwright,device_Panasonic.md
+https://www.skytek.com.tw/device/NEC,"天方科技實業股份有限公司",success,7,playwright,device_NEC.md
+https://www.skytek.com.tw/device/Poly,"天方科技實業股份有限公司",success,15,playwright,device_Poly.md
+https://www.skytek.com.tw/device/Aver,"天方科技實業股份有限公司",success,8,playwright,device_Aver.md
+https://www.skytek.com.tw/device/BxB,"天方科技實業股份有限公司",success,7,playwright,device_BxB.md
+https://www.skytek.com.tw/solution/software,"天方科技實業股份有限公司",success,49,playwright,solution_software.md
+https://www.skytek.com.tw/solution/TRAB,"天方科技實業股份有限公司",success,12,playwright,solution_TRAB.md
+https://www.skytek.com.tw/solution/STVW,"天方科技實業股份有限公司",success,49,playwright,solution_STVW.md
+https://www.skytek.com.tw/solution/IACS,"天方科技實業股份有限公司",success,45,playwright,solution_IACS.md
+https://www.skytek.com.tw/solution/MRS,"天方科技實業股份有限公司",success,53,playwright,solution_MRS.md
+https://www.skytek.com.tw/project/highSchoolCareer,"天方科技實業股份有限公司",success,132,fallback,project_highSchoolCareer.md
+https://www.skytek.com.tw/project/govAndCorp,"天方科技實業股份有限公司",success,8,playwright,project_govAndCorp.md
