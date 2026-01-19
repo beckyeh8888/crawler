@@ -6,7 +6,7 @@ services:
     plan: free
     rootDir: .
     buildCommand: npm install && npx playwright install --with-deps chromium && npm run build
-    startCommand: node dist/server.js
+    startCommand: npm run server:prod
     envVars:
       - key: NODE_ENV
         value: production
